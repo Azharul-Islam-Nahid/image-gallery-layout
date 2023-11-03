@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function ImageUpload({ handleImageUpload }) {
+function ImageUpload({ handleImageUpload setSelectedImage }) {
     const [selectedImage, setSelectedImage] = useState(null);
 
     const handleImageChange = (e) => {

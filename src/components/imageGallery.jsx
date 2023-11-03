@@ -1,13 +1,29 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import ImageUpload from "../components/imageUpload";
+import axios from "axios";
 
-const Image = ({ image, index, selectedImages, handleImageSelection, handleImageDragStart, handleImageDrop }) => {
+const Image = ({ image, index, selectedImages, handleImageSelection, handleImageDragStart, handleImageDrop, isLargeImage }) => {
     const isSelected = selectedImages.includes(image._id);
+    const [isHovered, setIsHovered] = useState(false);
 
     const handleCheckboxChange = () => {
         handleImageSelection(image._id);
     };
+
+    const handleMouseEnter = () => {
+        // Add a dark background color on hover if not selected
+        if (!isSelected) {
+            setIsHovered(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        // Restore the background color on mouse leave if not selected
+        if (!isSelected) {
+            setIsHovered(false);
+        }
+    };
+
 
     return (
         <div
@@ -19,21 +35,12 @@ const Image = ({ image, index, selectedImages, handleImageSelection, handleImage
                 position: "relative",
                 margin: "5px",
                 cursor: "move",
-                backgroundColor: "transparent",
+                backgroundColor: isSelected ? "transparent" : isHovered ? "#333" : "transparent",
                 transition: "background-color 0.2s",
+                width: isLargeImage ? "400px" : "300px",
             }}
-            onMouseEnter={(e) => {
-                // Add a dark background color on hover
-                if (!isSelected) {
-                    e.target.style.backgroundColor = "#333";
-                }
-            }}
-            onMouseLeave={(e) => {
-                // Restore the background color on mouse leave
-                if (!isSelected) {
-                    e.target.style.backgroundColor = "transparent";
-                }
-            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <input type="checkbox" checked={isSelected} onChange={handleCheckboxChange} style={{ position: "absolute", top: "5px", right: "5px" }} />
             <img src={image?.image} alt="gallery" style={{ width: "100%" }} />
@@ -48,7 +55,7 @@ const ImageGallery = () => {
 
     const fetchImageData = async () => {
         try {
-            const response = await axios.get("https://image-gallery-server-two.vercel.app/allimages");
+            const response = await axios.get("http://localhost:5000/allimages");
             setApiData(response.data);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -78,7 +85,6 @@ const ImageGallery = () => {
             const toIndex = updatedData.findIndex((item) => item._id === imageId);
 
             if (fromIndex !== -1 && toIndex !== -1) {
-                // Reorder the images
                 const [movedImage] = updatedData.splice(fromIndex, 1);
                 updatedData.splice(toIndex, 0, movedImage);
                 setApiData(updatedData);
@@ -91,16 +97,15 @@ const ImageGallery = () => {
         event.preventDefault();
 
         const form = event.target;
-
         const productImage = form.product_img.files[0];
-
         const image = productImage;
         const formData = new FormData();
-        formData.append('image', image);
+        formData.append("image", image);
+
         const url = `https://api.imgbb.com/1/upload?key=0fd253a0ab31ae997654689deba2da86`;
 
         fetch(url, {
-            method: 'POST',
+            method: "POST",
             body: formData,
         })
             .then((res) => res.json())
@@ -112,10 +117,10 @@ const ImageGallery = () => {
                         posted: new Date().toLocaleTimeString(),
                     };
 
-                    fetch(`https://image-gallery-server-two.vercel.app/addImage`, {
-                        method: 'POST',
+                    fetch(`http://localhost:5000/addImage`, {
+                        method: "POST",
                         headers: {
-                            'content-type': 'application/json',
+                            "content-type": "application/json",
                         },
                         body: JSON.stringify(imageDetail),
                     })
@@ -123,6 +128,7 @@ const ImageGallery = () => {
                         .then((result) => {
                             console.log(result);
                             fetchImageData();
+                            setSelectedImage(null);
                         });
                 }
             });
@@ -130,14 +136,14 @@ const ImageGallery = () => {
 
     const handleDeleteSelectedImages = async () => {
         if (selectedImages.length === 0) {
-
+            // No images selected, do nothing
             return;
         }
 
         // Send requests to delete the selected images
         const deletePromises = selectedImages.map(async (imageId) => {
             try {
-                await axios.delete(`https://image-gallery-server-two.vercel.app/image/${imageId}`);
+                await axios.delete(`http://localhost:5000/image/${imageId}`);
             } catch (error) {
                 console.error(`Error deleting image with ID ${imageId}: ${error}`);
             }
@@ -166,7 +172,7 @@ const ImageGallery = () => {
                 </div>
             </div>
             <div className="grid grid-cols-4">
-                {apiData.map((item) => (
+                {apiData.map((item, index) => (
                     <Image
                         key={item._id}
                         image={item}
@@ -174,6 +180,7 @@ const ImageGallery = () => {
                         handleImageSelection={handleImageSelection}
                         handleImageDragStart={handleImageDragStart}
                         handleImageDrop={handleImageDrop}
+                        isLargeImage={index === 0}
                     />
                 ))}
                 <div>
