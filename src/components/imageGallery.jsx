@@ -20,6 +20,19 @@ const Image = ({ image, index, selectedImages, handleImageSelection, handleImage
                 margin: "5px",
                 cursor: "move",
                 backgroundColor: "transparent",
+                transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+                // Add a dark background color on hover
+                if (!isSelected) {
+                    e.target.style.backgroundColor = "#333";
+                }
+            }}
+            onMouseLeave={(e) => {
+                // Restore the background color on mouse leave
+                if (!isSelected) {
+                    e.target.style.backgroundColor = "transparent";
+                }
             }}
         >
             <input type="checkbox" checked={isSelected} onChange={handleCheckboxChange} style={{ position: "absolute", top: "5px", right: "5px" }} />
@@ -83,11 +96,11 @@ const ImageGallery = () => {
 
         const image = productImage;
         const formData = new FormData();
-        formData.append("image", image);
+        formData.append('image', image);
         const url = `https://api.imgbb.com/1/upload?key=0fd253a0ab31ae997654689deba2da86`;
 
         fetch(url, {
-            method: "POST",
+            method: 'POST',
             body: formData,
         })
             .then((res) => res.json())
@@ -99,10 +112,10 @@ const ImageGallery = () => {
                         posted: new Date().toLocaleTimeString(),
                     };
 
-                    fetch("http://localhost:5000/addImage", {
-                        method: "POST",
+                    fetch(`http://localhost:5000/addImage`, {
+                        method: 'POST',
                         headers: {
-                            "content-type": "application/json",
+                            'content-type': 'application/json',
                         },
                         body: JSON.stringify(imageDetail),
                     })
@@ -113,6 +126,31 @@ const ImageGallery = () => {
                         });
                 }
             });
+    };
+
+    const handleDeleteSelectedImages = async () => {
+        if (selectedImages.length === 0) {
+
+            return;
+        }
+
+        // Send requests to delete the selected images
+        const deletePromises = selectedImages.map(async (imageId) => {
+            try {
+                await axios.delete(`http://localhost:5000/image/${imageId}`);
+            } catch (error) {
+                console.error(`Error deleting image with ID ${imageId}: ${error}`);
+            }
+        });
+
+        // Wait for all delete operations to complete
+        await Promise.all(deletePromises);
+
+        // Clear the selected images
+        setSelectedImages([]);
+
+        // Fetch the updated image data
+        fetchImageData();
     };
 
     return (
@@ -144,7 +182,6 @@ const ImageGallery = () => {
             </div>
         </div>
     );
-
 };
 
 export default ImageGallery;
