@@ -48,7 +48,7 @@ const ImageGallery = () => {
 
     const fetchImageData = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/allimages");
+            const response = await axios.get("https://image-gallery-server-two.vercel.app/allimages");
             setApiData(response.data);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -112,7 +112,7 @@ const ImageGallery = () => {
                         posted: new Date().toLocaleTimeString(),
                     };
 
-                    fetch(`http://localhost:5000/addImage`, {
+                    fetch(`https://image-gallery-server-two.vercel.app/addImage`, {
                         method: 'POST',
                         headers: {
                             'content-type': 'application/json',
@@ -137,7 +137,7 @@ const ImageGallery = () => {
         // Send requests to delete the selected images
         const deletePromises = selectedImages.map(async (imageId) => {
             try {
-                await axios.delete(`http://localhost:5000/image/${imageId}`);
+                await axios.delete(`https://image-gallery-server-two.vercel.app/image/${imageId}`);
             } catch (error) {
                 console.error(`Error deleting image with ID ${imageId}: ${error}`);
             }
