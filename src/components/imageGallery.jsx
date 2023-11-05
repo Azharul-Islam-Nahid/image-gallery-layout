@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ImageUpload from "../components/imageUpload";
 import axios from "axios";
 
-const Image = ({ image, index, selectedImages, handleImageSelection, handleImageDragStart, handleImageDrop, isLargeImage }) => {
+const Image = ({
+    image,
+    index,
+    selectedImages,
+    handleImageSelection,
+    handleImageDragStart,
+    handleImageDrop,
+    isLargeImage,
+}) => {
     const isSelected = selectedImages.includes(image._id);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -24,7 +32,6 @@ const Image = ({ image, index, selectedImages, handleImageSelection, handleImage
         }
     };
 
-
     return (
         <div
             draggable="true"
@@ -36,13 +43,18 @@ const Image = ({ image, index, selectedImages, handleImageSelection, handleImage
                 margin: "5px",
                 cursor: "move",
                 backgroundColor: isSelected ? "transparent" : isHovered ? "#333" : "transparent",
-                transition: "background-color 0.2s",
+                transition: "background-color 0.2s, width 0.2s", // Add a transition for the width property
                 width: isLargeImage ? "400px" : "300px",
             }}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            <input type="checkbox" checked={isSelected} onChange={handleCheckboxChange} style={{ position: "absolute", top: "5px", right: "5px" }} />
+            <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={handleCheckboxChange}
+                style={{ position: "absolute", top: "5px", right: "5px" }}
+            />
             <img src={image?.image} alt="gallery" style={{ width: "100%" }} />
         </div>
     );
@@ -55,7 +67,7 @@ const ImageGallery = () => {
 
     const fetchImageData = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/allimages");
+            const response = await axios.get("https://image-gallery-server-two.vercel.app/allimages");
             setApiData(response.data);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -117,7 +129,7 @@ const ImageGallery = () => {
                         posted: new Date().toLocaleTimeString(),
                     };
 
-                    fetch(`http://localhost:5000/addImage`, {
+                    fetch(`https://image-gallery-server-two.vercel.app/addImage`, {
                         method: "POST",
                         headers: {
                             "content-type": "application/json",
@@ -143,7 +155,7 @@ const ImageGallery = () => {
         // Send requests to delete the selected images
         const deletePromises = selectedImages.map(async (imageId) => {
             try {
-                await axios.delete(`http://localhost:5000/image/${imageId}`);
+                await axios.delete(`https://image-gallery-server-two.vercel.app/image/${imageId}`);
             } catch (error) {
                 console.error(`Error deleting image with ID ${imageId}: ${error}`);
             }
@@ -171,7 +183,7 @@ const ImageGallery = () => {
                     )}
                 </div>
             </div>
-            <div className="grid grid-cols-4">
+            <div className="gap-0 grid grid-cols-3">
                 {apiData.map((item, index) => (
                     <Image
                         key={item._id}
